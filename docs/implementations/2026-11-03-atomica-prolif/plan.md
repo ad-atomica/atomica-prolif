@@ -62,9 +62,9 @@ upstream molecule, residue, interaction, and pickling tests cover compatibility.
 ## Task 3: Publish the fork when permitted
 
 - [x] Create `ad-atomica/atomica-prolif` as a GitHub fork of upstream.
-- [ ] Push the prepared `main` branch and set it as the fork's default branch.
-- [ ] Push release tag `v2.2.3+atomica.1` and verify GitHub Release artifacts.
-- [ ] Report exact outcomes and any remaining access blocker.
+- [x] Push the prepared `main` branch and set it as the fork's default branch.
+- [x] Push release tag `v2.2.3+atomica.1` and verify GitHub Release artifacts.
+- [x] Report exact outcomes and any remaining access blocker.
 
 ## Verification and deviations
 
@@ -92,11 +92,21 @@ upstream molecule, residue, interaction, and pickling tests cover compatibility.
 - Commit `68b21ba96990e729a93b4241f0ffb1659bb35bca` contains the tested fork.
   A standalone Git bundle and the wheel/source archive are saved beside this
   checkout in the parent Atomica workspace's ignored `.context/` directory.
-- Publication remains blocked: the cloud credential also received HTTP 403 on
-  push. Conductor's Mac publication command then returned `Timed out waiting
-  for client`. A remote ref check confirmed that `main` was not created. A
-  subsequent read-only Mac connectivity check also failed to return and was
-  cancelled. No release tag was created or pushed, and no release is published.
+- Publication completed through the Mac GitHub CLI. The fork's default branch
+  is `main`; annotated tag `v2.2.3+atomica.1` points to
+  `7308545d0d75c6dc7ba7ca12e79896b4fdfbd307`.
+- [Release run 41552567864](https://github.com/ad-atomica/atomica-prolif/actions/runs/41552567864)
+  passed its build, source and wheel installs, installed-wheel chemistry suite,
+  and publication jobs. The release contains the wheel, source archive, and
+  checksums; both downloaded packages pass `sha256sum -c SHA256SUMS`.
+- [Compatibility run 41552516575](https://github.com/ad-atomica/atomica-prolif/actions/runs/41552516575)
+  passed the earliest, baseline, latest, and package installation jobs.
+- Hosted lint identified a first-party import-order issue in the new tests.
+  Corrected the imports and ran the pinned Ruff commands from the fork root:
+  all lint checks passed and all 53 Python files passed format checks. Running
+  with an explicit config from the Atomica root had classified imports
+  differently. Only test imports and documentation changed after tagging;
+  the published package bytes and release tag remain unchanged.
 - The global hk Git hook found the parent Atomica configuration and ran its
   checks against the wrong repository paths. Fork checks were run explicitly;
   `HK=0` disabled that unrelated global hook for commits in this separate repo.

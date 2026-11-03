@@ -40,11 +40,16 @@ requirements.
 
 ## Status
 
-The cloud GitHub integration rejected fork creation with HTTP 403. Alex directed
-use of the GitHub CLI on his Mac; this successfully created the organization fork.
-The patch and package are implemented and verified locally. Pushing the fork
-and publishing release assets remain pending: the cloud credential cannot push
-this repository, and Conductor timed out waiting for the Mac client during
-publication. The remote fork still has its upstream default branch, without the
-prepared `main` branch. No production deployment or consumer migration is part
-of this work; no production release actions are required.
+Implemented and published at
+[`ad-atomica/atomica-prolif`](https://github.com/ad-atomica/atomica-prolif), with
+`main` as its default branch and the original upstream fork relationship intact.
+Release [`v2.2.3+atomica.1`](https://github.com/ad-atomica/atomica-prolif/releases/tag/v2.2.3%2Batomica.1)
+provides the wheel, source archive, and `SHA256SUMS`. The hosted release build,
+source/wheel installation checks, installed-wheel chemistry regressions, and
+earliest/baseline/latest compatibility suites passed. Both downloaded release
+archives match their published checksums; the wheel contains the qualified
+patched chemistry sources. Fork creation and pushing used the Mac GitHub CLI.
+
+Atomica consumer integration remains explicitly deferred. No production
+deployment or consumer migration is part of this work; no production release
+actions are required.

@@ -30,7 +30,7 @@ molecule, residue, interaction, and pickling tests remain in place.
 
 ## Install a release
 
-Once the release is published:
+Install the released wheel:
 
 ```sh
 uv pip install 'prolif @ https://github.com/ad-atomica/atomica-prolif/releases/download/v2.2.3%2Batomica.1/prolif-2.2.3%2Batomica.1-py3-none-any.whl'

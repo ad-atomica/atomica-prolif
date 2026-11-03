@@ -6,11 +6,12 @@ import weakref
 
 import numpy as np
 import pytest
+from rdkit import Chem
+
 from prolif import Molecule
 from prolif.interactions import ImplicitHBAcceptor, ImplicitHBDonor
 from prolif.pickling import PROLIF_PICKLE_OPTIONS, RDKitPickleHandler
 from prolif.residue import Residue
-from rdkit import Chem
 
 
 def molecule_with_coordinates(smiles: str) -> Chem.Mol:
