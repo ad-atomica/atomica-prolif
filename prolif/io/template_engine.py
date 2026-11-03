@@ -234,10 +234,30 @@ def assign_intra_props(
 
     # convert indices to names
     res_alias = RESNAME_ALIASES.get(residue_name, residue_name)
-    aliases = ATOMNAME_ALIASES.get(res_alias, {})
+    aliases = {
+        **ATOMNAME_ALIASES["Protein"],
+        **ATOMNAME_ALIASES.get(res_alias, {}),
+    }
+    template_names = {
+        row[0].strip() for row in block.find("_chem_comp_atom.", ["atom_id"])
+    }
     for atom in mol.GetAtoms():
-        nm = atom.GetMonomerInfo().GetName().strip()
-        nm = aliases.get(nm, nm)
+        source_name = atom.GetMonomerInfo().GetName().strip()
+        # Custom templates may use a common alias as a distinct canonical name
+        # (for example the NME methyl H1 is separate from its backbone H).
+        nm = (
+            source_name
+            if source_name in template_names
+            else aliases.get(source_name, source_name)
+        )
+        if nm in nm_2_idx:
+            previous = mol.GetAtomWithIdx(nm_2_idx[nm])
+            raise ValueError(
+                f"Residue {residue_name}: duplicate canonical atom name {nm!r} "
+                f"from {previous.GetMonomerInfo().GetName().strip()!r} "
+                f"(index {previous.GetIdx()}) and {source_name!r} "
+                f"(index {atom.GetIdx()}); provide unique atom names."
+            )
         if (
             residue_name in FORMAL_CHARGE_ALIASES
             and nm in FORMAL_CHARGE_ALIASES[residue_name]

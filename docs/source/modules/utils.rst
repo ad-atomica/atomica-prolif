@@ -59,11 +59,17 @@ standardized chemistry, allowing the illustrated ``RemoveHs`` analysis copy to
 retain implicit donor/acceptor/ionic eligibility. Removing atoms manually without
 retaining hydrogen counts is not the supported operation.
 
-For PDB paths, supported four-letter histidine names in extended columns 18-21
-are restored before template selection. This uses the first model and requires
+For PDB paths in either mode, recognized four-letter residue aliases in extended
+columns 18-21 are restored before template selection. Unknown extensions raise
+an error instead of being truncated. This uses the first model and requires
 unique decimal atom serials; other serial encodings require a caller-provided
 molecule with intact metadata. If an external parser already truncated HISB to
 HIS, use explicit source evidence; the lost assignment cannot be recovered.
+
+Common protein atom aliases (including O1/OT1 and O2/OT2/OXT variants) are applied
+alongside residue-specific aliases. A custom template's explicit atom names take
+precedence. Duplicate names after alias mapping raise an error instead of silently
+dropping source bonds.
 
 The default ``preserve_histidine=False`` remains compatible with existing calls,
 including in-place mutation of ProLIF inputs and residue-name normalization.
