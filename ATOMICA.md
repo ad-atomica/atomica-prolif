@@ -78,6 +78,42 @@ assets remain unchanged. Atomica consumer integration must supply trustworthy
 source evidence and enable this option before making its H-removed analysis
 copy; updating its dependency is a separate PR.
 
+### Prepared protein protonation preservation (unreleased)
+
+`MoleculeStandardizer(preserve_protonation=True)(prepared_molecule,
+source_is_prepared=True)` validates a caller-prepared RDKit/ProLIF graph and returns
+an independent copy. It preserves source chemical assignments directly instead
+of rebuilding them from templates. The preparation declaration means bond orders,
+formal charges and total H counts (including intentionally absent H) are already
+assigned; it must not be inferred merely from a PDB parser or sanitization.
+
+The qualified scope is complete standard protein residues and their supported
+aliases: Asp/Glu acid and carboxylate, neutral/cationic Lys and Arg, histidine
+tautomers/cation, Cys thiol/thiolate/disulfide, Tyr phenol/phenolate, Ser/Thr
+neutral/alkoxide, and neutral/charged N/C termini including proline. Equivalent
+source carboxylate and guanidinium resonance forms, acid proton positions and
+source identities/coordinates are retained. Explicit variant aliases must agree
+with the local chemistry. Generic names do not force a default state, and an
+unrelated force-field marker cannot change Cys chemistry.
+
+Missing atoms, unsupported bonds/charges/radicals, contradictory H names and
+alias conflicts raise errors without mutating the source. Raw PDB paths, custom
+templates, waters, caps, ligands, metals and modified residues are outside this
+first strict path: supply an appropriately prepared protein-only selection.
+It is not a protonation predictor or a promise about every biomolecule.
+Residue identifiers (name, number, chain/segment) must be unique; insertion codes
+are retained as metadata but do not distinguish ProLIF residue identifiers.
+
+Residues derive from the validated connected graph, including its hybridization.
+`Molecule(Chem.RemoveHs(result))` retains the qualified chemical state and implicit
+interaction behavior. The original histidine-only option and legacy defaults
+remain available; they do not provide this broader guarantee. See the API docs,
+`tests/test_protonation_preservation.py`, and the historical
+[audit](docs/audits/2026-11-03-titratable-preservation/README.md).
+
+The feature remains unreleased. Atomica integration must provide the declared
+preparation evidence and qualify its own receptor inputs before enabling it.
+
 ## Install a release
 
 Install the released wheel:

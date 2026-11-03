@@ -79,6 +79,63 @@ modes. This capability is scoped to histidine; it does not establish
 protonation preservation for every titratable residue, modified histidine or
 metal-coordinated histidine with unsupported ring-N connectivity.
 
+Prepared protein preservation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a receptor whose complete chemical graph has already been assigned by trusted
+preparation, use the broader, mutually exclusive option::
+
+    from rdkit import Chem
+    from prolif import Molecule
+    from prolif.io import MoleculeStandardizer
+
+    receptor = MoleculeStandardizer(preserve_protonation=True)(
+        prepared_molecule, source_is_prepared=True
+    )
+    implicit_receptor = Molecule(Chem.RemoveHs(receptor))
+
+Keep the default hydrogen-removal sanitization enabled. Using
+``RemoveHs(..., sanitize=False)`` without updating explicit H counts can lose
+hydrogen inventories when the source hydrogens existed only as graph atoms.
+
+``prepared_molecule`` must be a typed RDKit or ProLIF molecule with complete
+supported protein residues and intentionally assigned bond orders, formal charges
+and total H counts. The declaration includes hydrogens intentionally absent from
+each site. It is preparation evidence, not an assertion that a raw PDB happened to
+parse or sanitize. This path accepts neither raw file paths nor custom templates;
+it validates the source graph and copies it without applying chemistry templates.
+It cannot be combined with ``preserve_histidine`` or histidine-only evidence.
+
+The validator covers all standard amino acids, supported state aliases, peptide
+bonds and disulfides. It checks local source states for Asp/Glu, Lys, Arg, Cys,
+Tyr, His, Ser/Thr and both termini (including proline). Generic residue names
+retain their supported assigned states. Explicit aliases such as LYN, ASH, CYM
+or HID must agree with the graph. CYX/CYS1/CYS2 are resolved as thiolate or
+disulfide from local connectivity; CYM/CYN require a free thiolate. Acid proton
+positions and equivalent carboxylate/guanidinium resonance forms remain intact.
+No global force-field inference or pH-based prediction occurs in this path.
+
+Topology and element inventories, named hydrogen attachment, radicals, charge,
+bond orders, aromaticity and terminal connectivity are validated. Free C termini
+must include their second oxygen; merely omitting a peptide bond cannot turn an
+incomplete residue into a valid terminus. Missing atoms, caps, modified residues,
+waters, ligands, metals and other unsupported chemistry fail with an actionable
+error. Supply a complete protein-only selection; do not crop out bonded residues
+and declare the resulting artificial termini prepared.
+
+Residues must have unique ProLIF identifiers (residue name, number and chain or
+segment). PDB insertion codes remain in atom metadata but are not part of those
+identifiers; renumber insertion-code collisions during preparation.
+
+The source is never mutated, including on failure. Atom order, residue/atom
+identity, isotopes, stereochemistry, hydrogen attachment and coordinates are
+retained in the returned copy. Sanitization on that copy must not change assigned
+charges, H counts, radicals or stereochemistry. Aromatic perception may normalize
+an equivalent Kekule representation. Residue views come from the finalized graph,
+so both graph-H and supported H-removed representations use consistent parent
+chemistry and hybridization for implicit detection. This qualifies the enumerated
+standard protein states, not arbitrary biomolecules or unknown preparation tools.
+
 .. automodule:: prolif.io.template_engine
     :members: TemplateEngine, RDKitMolTemplateEngine, CIFTemplateEngine, assign_bond_orders_from_template, strip_bonds, assign_intra_props
 

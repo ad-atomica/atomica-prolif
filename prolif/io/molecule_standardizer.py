@@ -22,6 +22,7 @@ from prolif.io._histidine import (
     resolve_histidines,
     update_parent,
 )
+from prolif.io._protonation import preserve_prepared
 from prolif.io.constants import (
     AMBER_POOL,
     CHARMM_POOL,
@@ -115,6 +116,15 @@ class MoleculeStandardizer:
         Default is ``False`` (legacy normalization, including cationic HIS).
         Other residues retain existing template/name-normalization behavior;
         this option does not guarantee their protonation states.
+    preserve_protonation : bool, optional
+        Validate and copy an already prepared standard protein graph without
+        applying chemistry templates. Requires ``source_is_prepared=True`` at
+        call time and a typed RDKit or ProLIF input. Supported residue and terminal
+        states, source topology, hydrogen attachment and explicit aliases are
+        checked before returning a copy with original identities and coordinates.
+        Ambiguous/unprepared input and unsupported chemistry raise ``ValueError``.
+        Mutually exclusive with ``preserve_histidine`` and custom ``templates``.
+        Default is ``False``.
 
     Attributes
     ----------
@@ -148,9 +158,20 @@ class MoleculeStandardizer:
         templates: Sequence[gemmi.cif.Document | MolTemplate] | None = None,
         *,
         preserve_histidine: bool = False,
+        preserve_protonation: bool = False,
     ) -> None:
+        if preserve_protonation and preserve_histidine:
+            raise ValueError(
+                "Choose preserve_protonation or preserve_histidine, not both."
+            )
+        if preserve_protonation and templates is not None:
+            raise ValueError(
+                "Prepared protonation preservation validates source chemistry; "
+                "custom templates are unsupported."
+            )
         self.engines = _build_engines(templates)
         self.preserve_histidine = preserve_histidine
+        self.preserve_protonation = preserve_protonation
 
     def __call__(
         self,
@@ -158,6 +179,7 @@ class MoleculeStandardizer:
         *,
         histidine_states: Mapping[HistidineKey, str] | None = None,
         complete_histidine_hydrogens: Iterable[str | ResidueId] = (),
+        source_is_prepared: bool = False,
     ) -> Molecule:
         """Standardize a molecule.
 
@@ -181,6 +203,13 @@ class MoleculeStandardizer:
             format or a single observed hydrogen. Only graph H, not H inferred
             from unstandardized valences, establishes this inventory. Default is
             empty (unknown completeness). Requires ``preserve_histidine=True``.
+        source_is_prepared : bool, optional
+            Explicit preparation provenance for ``preserve_protonation=True``:
+            source bond orders, charges and total H counts, including absent H,
+            are intentionally assigned. Sanitization or PDB parsing alone does
+            not establish this evidence. Default is ``False``. The strict path
+            requires a complete supported protein-only RDKit/ProLIF graph;
+            string/path inputs and histidine-only evidence are rejected.
 
         Returns
         -------
@@ -225,10 +254,21 @@ class MoleculeStandardizer:
         """
 
         complete_histidine_hydrogens = tuple(complete_histidine_hydrogens)
-        if not self.preserve_histidine and (
-            histidine_states is not None or complete_histidine_hydrogens
+        if self.preserve_protonation:
+            return preserve_prepared(
+                input_topology,
+                source_is_prepared=source_is_prepared,
+                histidine_evidence=histidine_states is not None
+                or bool(complete_histidine_hydrogens),
+            )
+        if source_is_prepared or (
+            not self.preserve_histidine
+            and (histidine_states is not None or complete_histidine_hydrogens)
         ):
-            raise ValueError("Histidine evidence requires preserve_histidine=True.")
+            raise ValueError(
+                "Histidine evidence requires preserve_histidine=True; "
+                "source_is_prepared requires preserve_protonation=True."
+            )
 
         protein_mol = self._read_topology(input_topology)
 
