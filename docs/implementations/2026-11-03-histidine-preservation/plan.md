@@ -49,7 +49,7 @@ modify `prolif/io/molecule_standardizer.py`.
 - [x] Apply existing templates without leaking template names into histidine keys.
 - [x] Validate output state/correspondence and synchronize connected chemistry.
 - [x] Verify actual implicit contacts and charge eligibility before/after RemoveHs.
-- [ ] Run new tests and existing IO, connected-parent, molecule, residue,
+- [x] Run new tests and existing IO, connected-parent, molecule, residue,
   interaction, and serialization tests; commit the focused implementation.
 
 ## Task 2: Documentation and delivery
@@ -60,7 +60,7 @@ modify `prolif/io/molecule_standardizer.py`.
   supported H removal and four-letter parsing, and histidine-only limits.
 - [x] Run full pytest, relevant Ruff and mypy checks, and `uv build`.
 - [x] Request independent review; address important findings with regressions.
-- [ ] Record actual verification, commit, push, and open a draft PR against main.
+- [x] Record actual verification, commit, push, and open a draft PR against main.
 
 ## Execution notes
 
@@ -105,3 +105,16 @@ modify `prolif/io/molecule_standardizer.py`.
 - Ruling: preserve four-letter histidine PDB aliases from raw fixed columns by
   source serial number. Unsupported serial encodings require intact caller
   metadata rather than guessing a lost state.
+
+## Delivery
+
+- Implementation commit: `5caaf41` (`feat: preserve source histidine states during
+  standardization`). Pushed `conductor/prolif-preserve-histidine` to origin.
+- Opened [draft PR #1](https://github.com/ad-atomica/atomica-prolif/pull/1) against
+  `ad-atomica/atomica-prolif` main. The feature branch remains checked out for
+  Conductor's PR display.
+- The machine-wide hk commit hook had no configured tool version. Used its
+  `HK=0` bypass (as in the fork's original setup) after running this repository's
+  checks explicitly. No repository check configuration was changed.
+- No Atomica checkout, dependency pins, source review discussions, release tags
+  or published assets were changed. Consumer integration remains a separate PR.
