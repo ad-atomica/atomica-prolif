@@ -57,7 +57,7 @@ upstream molecule, residue, interaction, and pickling tests cover compatibility.
   and run the focused chemistry regressions against that artifact.
 - [x] Build a wheel from the source archive and verify its package identity.
 - [x] Document exact future consumer pins, updates, and the publication steps.
-- [ ] Commit the complete fork changes and export a git bundle for handoff.
+- [x] Commit the complete fork changes and export a git bundle for handoff.
 
 ## Task 3: Publish the fork when permitted
 
@@ -72,7 +72,9 @@ upstream molecule, residue, interaction, and pickling tests cover compatibility.
 - Patched source: 396 tests passed in 13.65 seconds, including all 11 new
   regressions and the upstream molecule/residue/interaction/pickling suites.
 - Installed wheel outside the source checkout: all 11 regressions passed in
-  2.23 seconds, with version and import origin checked explicitly.
+  2.23 seconds, with version and import origin checked explicitly. Final package
+  metadata verification after the RDKit requirement change also passed; the
+  final installed-wheel regression run passed all 11 tests in 2.39 seconds.
 - Wheel, source archive, and wheel rebuilt from the source archive all built.
 - Pinned Ruff 0.11.2 checks and formatting, actionlint, and `git diff --check`
   passed. Existing upstream/MDAnalysis deprecation warnings remain.
@@ -86,5 +88,16 @@ upstream molecule, residue, interaction, and pickling tests cover compatibility.
   `pull_request_target` comments to a read-only `pull_request` job summary,
   with checkout credentials disabled and SHA-based checkouts.
 - The cloud integration could not create forks. Alex directed the Mac GitHub
-  CLI, which successfully created the organization fork. Publication is next.
+  CLI, which successfully created the organization fork.
+- Commit `68b21ba96990e729a93b4241f0ffb1659bb35bca` contains the tested fork.
+  A standalone Git bundle and the wheel/source archive are saved beside this
+  checkout in the parent Atomica workspace's ignored `.context/` directory.
+- Publication remains blocked: the cloud credential also received HTTP 403 on
+  push. Conductor's Mac publication command then returned `Timed out waiting
+  for client`. A remote ref check confirmed that `main` was not created. A
+  subsequent read-only Mac connectivity check also failed to return and was
+  cancelled. No release tag was created or pushed, and no release is published.
+- The global hk Git hook found the parent Atomica configuration and ran its
+  checks against the wrong repository paths. Fork checks were run explicitly;
+  `HK=0` disabled that unrelated global hook for commits in this separate repo.
 - Atomica's tracked files and current branch remain unchanged.

@@ -42,6 +42,9 @@ requirements.
 
 The cloud GitHub integration rejected fork creation with HTTP 403. Alex directed
 use of the GitHub CLI on his Mac; this successfully created the organization fork.
-Package verification and publication are in progress. No production deployment
-or consumer migration is part of this work; no production release actions are
-required.
+The patch and package are implemented and verified locally. Pushing the fork
+and publishing release assets remain pending: the cloud credential cannot push
+this repository, and Conductor timed out waiting for the Mac client during
+publication. The remote fork still has its upstream default branch, without the
+prepared `main` branch. No production deployment or consumer migration is part
+of this work; no production release actions are required.
