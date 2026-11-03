@@ -28,6 +28,45 @@ Standalone residues and explicit hydrogen-bond detectors retain upstream
 behavior. Focused regressions live in `tests/test_connected_parent.py`; upstream
 molecule, residue, interaction, and pickling tests remain in place.
 
+### Source-preserving histidine standardization (unreleased)
+
+`MoleculeStandardizer(preserve_histidine=True)` resolves histidine states from
+source evidence **before** selecting per-residue HID/HIE/HIS templates. It
+preserves a mixture of HID, HIE and HIP even when a writer calls them all HIS.
+This fixes an existing template-selection limitation: implicit H removal does
+not itself require choosing a new protonation state.
+
+Explicit state aliases (HID/HIE/HIP, HSD/HSE/HSP and built-in forcefield aliases)
+are evidence. Generic HIS requires per-call `histidine_states` assignments or a
+`complete_histidine_hydrogens` declaration for each such residue. The latter
+asserts that ring-N graph hydrogens are complete, not that all receptor H are
+present. PDB format and a single observed H cannot establish completeness.
+Names, caller assignments and validated H attachment/inventory must agree;
+ambiguous or conflicting inputs, unsupported ring connectivity and ring radicals
+raise actionable errors. No pH-based prediction
+or global HIS override is performed.
+
+The opt-in path returns a copy, retains original histidine residue identities,
+atom correspondence and coordinates, and verifies state after template
+application. Its connected graph and residues share the resolved chemistry;
+`Molecule(Chem.RemoveHs(result))` can be used for implicit detection while
+retaining the assigned state. Supported four-letter aliases are retained when
+the standardizer reads an extended PDB (first model, unique decimal serials).
+Assignments lost by an external parser require explicit caller evidence.
+
+Default calls retain legacy behavior, including in-place mutation of ProLIF
+inputs, name normalization, and generic HIS's cationic template. Other residues
+still use their existing templates and name normalization in either mode. This
+change does not guarantee preservation for all titratable residues or modified/
+metal-coordinated histidines with unsupported connectivity. See the
+[API documentation](docs/source/modules/utils.rst) and
+`tests/test_histidine_preservation.py` for examples and regressions.
+
+This is an unreleased library change; package version and existing release
+assets remain unchanged. Atomica consumer integration must supply trustworthy
+source evidence and enable this option before making its H-removed analysis
+copy; updating its dependency is a separate PR.
+
 ## Install a release
 
 Install the released wheel:
@@ -55,7 +94,7 @@ not been changed by this fork-creation work.
 
 ```sh
 uv sync --locked --only-group tests
-uv run --no-sync pytest -q tests/test_connected_parent.py tests/test_molecule.py tests/test_residues.py tests/test_interactions.py tests/test_pickling.py
+uv run --no-sync pytest -q tests/test_histidine_preservation.py tests/test_io.py tests/test_connected_parent.py tests/test_molecule.py tests/test_residues.py tests/test_interactions.py tests/test_pickling.py
 uv build
 ```
 

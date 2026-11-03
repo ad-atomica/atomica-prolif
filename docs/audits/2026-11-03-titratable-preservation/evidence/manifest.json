@@ -1,0 +1,20 @@
+{
+  "python": "3.11.15",
+  "rdkit": "2025.09.6",
+  "numpy": "1.26.4",
+  "gemmi": "0.7.5",
+  "prolif": "2.2.3+atomica.1",
+  "head": "b1094973e2d194171a460857de3587116676adad",
+  "base": "e876dd4ddcd8df9f3c1a0d9f782107d132294a5f",
+  "matrix_cases": 560,
+  "baseline_cases": 280,
+  "contact_scenarios": 104,
+  "contact_standardization_errors": 18,
+  "sha256": {
+    "results.json": "047fc9d6413cf1c3bc0c0cc19523751d4975647b9d183452ddbb9b6a84878232",
+    "alias-probe-results.json": "61348a82bf2390ff85e9ec0bd61af791a64afa308bda971cfe728ad13cd79b10",
+    "contact-results.json": "49f46afc4fa02b47c7ed503abcb5ee83d9d2c1bdd4c06d7e99c73de38c18339e",
+    "baseline-results.json": "5d634461da5c7bb2cd9ddfc33e2e9fd4149f4e0b7fa895d911d1cbaf87bbf3bb",
+    "edge-results.json": "7eb0e817391c30787e32861ade2093d7e54e1abff69032dd9103215b7a3e2f59"
+  }
+}
