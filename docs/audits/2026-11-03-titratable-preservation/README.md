@@ -6,8 +6,9 @@ introduced radicals, lost connectivity, and changed interaction detection outsid
 histidine. `preserve_histidine=True` protects supported histidines; it does not
 protect these other residues.
 
-This is an investigation with executable evidence, not a fix. No library code,
-dependency, release, branch, or existing PR was changed by this audit.
+This is an investigation with executable evidence, not a fix. The observations
+describe the recorded baseline; subsequent fixes are separate.
+The archived evidence is immutable and can be regenerated at the audited commit.
 
 ## Scope and evidence
 
@@ -17,7 +18,7 @@ Audited checkout: `b1094973e2d194171a460857de3587116676adad`, branch
 Experiments use the locked environment, RDKit **2025.09.6**, and this checkout's
 ProLIF **2.2.3+atomica.1**. The version label alone does not identify this unreleased
 branch; use the commit above. Exact dependency versions and raw-result hashes are
-in the generated [manifest](../../../.context/titratable-audit/manifest.json).
+in the generated [manifest](evidence/manifest.json).
 
 - **560 chemistry cases:** 70 source-state/name combinations, four H
   representations, and both standardizer modes. Coverage includes Asp, Glu, Lys,
@@ -198,7 +199,7 @@ The engine strips source bonds, applies only residue-specific atom aliases, and
 skips template bonds whose atom names cannot be found. It does not merge the
 shared Protein aliases. Some of those names are recognized separately for the
 heavy-atom-count exemption, which does not restore connectivity. The independent
-[static review](../../../.context/titratable-audit/static-review.md) records the
+[static review](evidence/static-review.md) records the
 precise source locations.
 
 ### 5. Parent/residue consistency changes the practical effect of the option
@@ -256,7 +257,7 @@ Fixed H counts can produce different detector errors. For example, neutral LYN
 then loses donor contacts (38 → 0) while retaining acceptor matches and gaining
 ionic contacts, because the output is a cationic radical rather than ordinary
 protonated lysine. A single representation is not enough to qualify the path.
-The [contact JSON](../../../.context/titratable-audit/contact-results.json) records
+The [contact JSON](evidence/contact-results.json.gz) records
 exact pose indices, coordinates, metadata examples and all tested variants.
 
 ## What the passing results establish
@@ -342,13 +343,18 @@ gitignored `.context/titratable-audit/` directory and regenerate the local CSV.
 - [Evidence and mutation edge probes](edge_probes.py)
 - [Baseline comparator](baseline.py) and [observation validator](validate.py)
 - [JSON evidence validation helpers](evidence.py)
-- [Full chemistry JSON](../../../.context/titratable-audit/results.json),
-  [alias JSON](../../../.context/titratable-audit/alias-probe-results.json),
-  [edge JSON](../../../.context/titratable-audit/edge-results.json), and
-  [existing-suite output](../../../.context/titratable-audit/pytest.log)
+- [Full chemistry JSON](evidence/results.json.gz),
+  [alias JSON](evidence/alias-probe-results.json.gz),
+  [edge JSON](evidence/edge-results.json.gz), and
+  [existing-suite output](evidence/pytest.log.gz)
 
 The audit scripts pass repository Ruff lint, formatting and mypy checks. An independent
 review checked the source-state construction, alias probes, state signatures,
 resonance distinctions and boundary interpretation; its
-[review notes](../../../.context/titratable-audit/harness-review.md) distinguish
+[review notes](evidence/harness-review.md) distinguish
 measured results from untested guarantees.
+
+Historical evidence is checked in under `evidence/`; JSON files use deterministic
+gzip compression. Their uncompressed SHA-256 hashes match the archived manifest.
+The reproduction assertions describe the audited commit, not expected behavior
+after later fixes. To reproduce historical results, use the recorded checkout.
