@@ -105,7 +105,17 @@ class Molecule(BaseRDKitMol):
             residues = split_mol_by_residues(self, use_segid=use_segid)
             residues = [Residue(mol, use_segid=use_segid) for mol in residues]
             residues.sort(key=attrgetter("resid"))
+        else:
+            # Binding shared residues would change the original molecule's
+            # geometry context when a second molecule is constructed.
+            residues = [Residue(res, use_segid=res._use_segid) for res in residues]
         self.residues = ResidueGroup(residues)
+        # Geometry needs bonds cut during fragmentation, without making the
+        # neighbouring residues' atoms additional interaction candidates.
+        # A plain shared graph avoids an uncollectable RDKit parent/residue cycle.
+        geometry_parent = Chem.Mol(self)
+        for residue in self.residues.values():
+            residue._parent_molecule = geometry_parent
 
     @classmethod
     def from_mda(

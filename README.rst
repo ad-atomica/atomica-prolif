@@ -1,3 +1,11 @@
+Atomica ProLIF
+=============
+
+This is Ad Atomica's fork of ProLIF 2.2.3, with connected-parent implicit
+hydrogen-bond chemistry and geometry fixes. It retains the ``prolif`` import and
+distribution names and uses the distinct version ``2.2.3+atomica.1``.
+See `ATOMICA.md <ATOMICA.md>`_ for installation, maintenance, and release instructions.
+Upstream documentation and attribution follow below.
 
 .. image:: docs/assets/logo.svg
    :alt: ProLIF logo

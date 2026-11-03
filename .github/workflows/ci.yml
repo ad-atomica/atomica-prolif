@@ -40,7 +40,7 @@ jobs:
             os: ubuntu-latest
             python-version: "3.10"
             uv-sync-args: ""
-            uv-run-args: "--with rdkit==2022.09.1 --with mdanalysis==2.2.0"
+            uv-run-args: "--with rdkit==2025.9.6 --with mdanalysis==2.2.0"
             coverage: false
           - label: baseline
             os: ubuntu-latest
@@ -80,8 +80,8 @@ jobs:
               --cov=prolif \
               --cov-report=xml
 
-      - name: Measure tests coverage
-        if: matrix.coverage
+      - name: Measure upstream tests coverage
+        if: matrix.coverage && github.repository == 'chemosim-lab/ProLIF'
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml

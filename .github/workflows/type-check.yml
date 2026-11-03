@@ -1,8 +1,11 @@
 name: "Type-check"
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize]
+
+permissions:
+  contents: read
 
 jobs:
   typing:
@@ -12,6 +15,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -34,9 +40,11 @@ jobs:
           uv run python scripts/check_types.py | tee tmp_data/target.txt
 
       - name: Checkout PR branch
-        run: |
-          git fetch https://github.com/${{ github.event.pull_request.head.repo.owner.login }}/${{ github.event.pull_request.head.repo.name }}.git ${{ github.event.pull_request.head.ref }}:diff-head
-          git checkout diff-head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          clean: false
 
       - name: Run typing tree on PR branch
         run: |
@@ -78,18 +86,9 @@ jobs:
             echo '</details>'
           } >> tmp_data/comment.md
 
-      - name: Find Comment
-        uses: peter-evans/find-comment@v3
-        id: fc-typecheck
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: "github-actions[bot]"
-          body-includes: "### Type-checking report"
-
-      - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          comment-id: ${{ steps.fc-typecheck.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body-path: "tmp_data/comment.md"
-          edit-mode: replace
+      - name: Publish type-checking job summary
+        if: always()
+        run: |
+          if [ -f tmp_data/comment.md ]; then
+            cat tmp_data/comment.md >> "$GITHUB_STEP_SUMMARY"
+          fi

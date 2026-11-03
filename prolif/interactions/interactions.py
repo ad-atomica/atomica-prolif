@@ -16,7 +16,7 @@ from math import degrees, pi, radians
 from typing import TYPE_CHECKING, Literal
 
 from rdkit import Geometry
-from rdkit.Chem import MolFromSmarts
+from rdkit.Chem import MolFromSmarts, SubstructMatchParameters
 from rdkit.Chem.rdchem import HybridizationType
 
 from prolif.interactions.base import (
@@ -36,6 +36,8 @@ from prolif.io.constants import RESNAME_ALIASES
 from prolif.utils import angle_between_limits, get_centroid, get_ring_normal_vector
 
 if TYPE_CHECKING:
+    from rdkit.Chem import Mol
+
     from prolif.residue import Residue
     from prolif.typeshed import Angles, InteractionMetadata
 
@@ -690,6 +692,10 @@ class ImplicitHBAcceptor(Distance, VdWContact):
         water_in_lig_res = self.check_water_residue(lig_res)
 
         for interaction_data in super().detect(lig_res, prot_res):
+            if not self._acceptor_matches_parent(
+                lig_res, interaction_data["indices"]["ligand"][0]
+            ):
+                continue
             if (
                 # If the interaction involves water residues
                 (water_in_prot_res or water_in_lig_res)
@@ -747,6 +753,24 @@ class ImplicitHBAcceptor(Distance, VdWContact):
                 yield self.add_vina_hbond_potential(
                     interaction_data, lig_res=lig_res, prot_res=prot_res
                 )
+
+    def _acceptor_matches_parent(self, res: "Residue", atom_idx: int) -> bool:
+        """Recheck acceptor chemistry at bonds cut during residue fragmentation."""
+        parent, parent_idx = self._get_geometry_context(res, atom_idx)
+        if (
+            res.GetAtomWithIdx(atom_idx).GetDegree()
+            == parent.GetAtomWithIdx(parent_idx).GetDegree()
+        ):
+            return True
+        # Fragment exclusions can miss amide N at glycine and chain termini.
+        # Keep configured SMARTS and local indices, without truncating large parents.
+        parameters = SubstructMatchParameters()
+        parameters.maxMatches = 0
+        parameters.maxRecursiveMatches = 0
+        return any(
+            match[0] == parent_idx
+            for match in parent.GetSubstructMatches(self.lig_pattern, parameters)
+        )
 
     def check_geometry(
         self,
@@ -937,6 +961,15 @@ class ImplicitHBAcceptor(Distance, VdWContact):
         resname: str = RESNAME_ALIASES.get(res.resid.name, res.resid.name)
         return resname == "HOH"
 
+    @staticmethod
+    def _get_geometry_context(res: "Residue", res_atom_idx: int) -> "tuple[Mol, int]":
+        # Standalone residues have no parent; molecule-owned fragments retain
+        # the connected graph so peptide bonds define the amide geometry.
+        parent = getattr(res, "_parent_molecule", None)
+        if parent is None:
+            return res, res_atom_idx
+        return parent, res.GetAtomWithIdx(res_atom_idx).GetUnsignedProp("mapindex")
+
     def _get_atom_angles(
         self,
         res: "Residue",
@@ -964,7 +997,8 @@ class ImplicitHBAcceptor(Distance, VdWContact):
         float
             The angle in degrees."""
 
-        res_atom = res.GetAtomWithIdx(res_atom_idx)
+        geometry, atom_idx = self._get_geometry_context(res, res_atom_idx)
+        res_atom = geometry.GetAtomWithIdx(atom_idx)
         nearby_heavy_atoms = [
             atom for atom in res_atom.GetNeighbors() if atom.GetAtomicNum() != 1
         ]
@@ -975,10 +1009,11 @@ class ImplicitHBAcceptor(Distance, VdWContact):
             )
 
         angles = []
+        conformer = geometry.GetConformer()
         for nearby_heavy_atom in nearby_heavy_atoms:
             # Get the coordinates of the atoms
-            nearby_coords = Geometry.Point3D(*res.xyz[nearby_heavy_atom.GetIdx()])
-            res_atom_coords = Geometry.Point3D(*res.xyz[res_atom_idx])
+            nearby_coords = conformer.GetAtomPosition(nearby_heavy_atom.GetIdx())
+            res_atom_coords = conformer.GetAtomPosition(atom_idx)
             far_atom_coords = Geometry.Point3D(*remote_res.xyz[remote_res_atom_idx])
 
             # Calculate the angle
@@ -1015,7 +1050,8 @@ class ImplicitHBAcceptor(Distance, VdWContact):
         float
             The angle in degrees.
         """
-        res_atom = res.GetAtomWithIdx(res_atom_idx)
+        geometry, atom_idx = self._get_geometry_context(res, res_atom_idx)
+        res_atom = geometry.GetAtomWithIdx(atom_idx)
         nearby_heavy_atoms = [
             atom for atom in res_atom.GetNeighbors() if atom.GetAtomicNum() != 1
         ]
@@ -1029,7 +1065,7 @@ class ImplicitHBAcceptor(Distance, VdWContact):
                         nearby_nearby_atom
                         for nearby_nearby_atom in each_atom.GetNeighbors()
                         if nearby_nearby_atom.GetAtomicNum() != 1
-                        and nearby_nearby_atom.GetIdx() != res_atom_idx
+                        and nearby_nearby_atom.GetIdx() != atom_idx
                     ]
                 )
             nearby_heavy_atoms.extend(nearby_nearby_atoms)
@@ -1037,9 +1073,10 @@ class ImplicitHBAcceptor(Distance, VdWContact):
         # Get the coordinates of the atoms
         nearby_atom_1_idx = nearby_heavy_atoms[0].GetIdx()
         nearby_atom_2_idx = nearby_heavy_atoms[1].GetIdx()
-        res_atom_coords = Geometry.Point3D(*res.xyz[res_atom_idx])
-        nearby_atom_1_coords = Geometry.Point3D(*res.xyz[nearby_atom_1_idx])
-        nearby_atom_2_coords = Geometry.Point3D(*res.xyz[nearby_atom_2_idx])
+        conformer = geometry.GetConformer()
+        res_atom_coords = conformer.GetAtomPosition(atom_idx)
+        nearby_atom_1_coords = conformer.GetAtomPosition(nearby_atom_1_idx)
+        nearby_atom_2_coords = conformer.GetAtomPosition(nearby_atom_2_idx)
         remote_atom_coords = Geometry.Point3D(*remote_res.xyz[remote_res_atom_idx])
 
         # Calculate the normal vector of the plane
