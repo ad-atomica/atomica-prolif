@@ -6,6 +6,11 @@ orphan: true
 
 Verified 2026-11-03 with Python 3.11.15, RDKit 2025.09.6 and the locked project
 environment. This feature is unreleased; the package version is unchanged.
+Strict implementation commit: `d9b4ee3`.
+
+Published as draft PRs [#2](https://github.com/ad-atomica/atomica-prolif/pull/2)
+(aliases), [#3](https://github.com/ad-atomica/atomica-prolif/pull/3) (consistency)
+and [#4](https://github.com/ad-atomica/atomica-prolif/pull/4) (prepared preservation).
 
 ## Delivered changes
 
@@ -35,6 +40,7 @@ Commands use `MISE_UV_VERSION=0.11.24 uv run --no-sync` unless stated otherwise.
 | `mypy .` | No issues in 66 source files |
 | `uv build --out-dir .context/protonation-dist` | Wheel and sdist built |
 | Installed wheel: strict, alias, consistency and histidine regression modules | 316 passed; import path checked to use the installed wheel |
+| Isolated staged snapshot: same four regression modules | 316 passed; import path checked to use the detached verification worktree |
 | Sphinx HTML build | Completed; existing documentation warnings remain |
 
 The complete documentation build emitted 103 warnings, including pre-existing

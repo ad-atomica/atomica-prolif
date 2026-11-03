@@ -23,8 +23,14 @@ Use TDD for fixes and an independent whole-change review. Spec: [spec.md](spec.m
 - [x] Document API, provenance contract and supported scope in API docs/ATOMICA.
 - [x] Run full pytest, Ruff, mypy, package build, installed-wheel regressions and
   independent review. Address substantive findings with reproductions.
-- [ ] Commit/push coherent changes and open draft PRs in a reviewable stack.
+- [x] Commit/push coherent changes and open draft PRs in a reviewable stack.
   Leave the top branch checked out for Conductor; do not merge or release.
+
+Completed implementation: `d9b4ee3`. Published draft chain:
+[alias repair #2](https://github.com/ad-atomica/atomica-prolif/pull/2),
+[parent/residue consistency #3](https://github.com/ad-atomica/atomica-prolif/pull/3),
+[prepared preservation #4](https://github.com/ad-atomica/atomica-prolif/pull/4),
+following the existing histidine/audit PR #1. See [verification.md](verification.md).
 
 Review focus: source H versus inferred H; inter-residue bonds and termini;
 explicit alias conflicts; equivalent resonance; no mutation on failure; residue
