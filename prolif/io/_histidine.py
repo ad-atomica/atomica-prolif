@@ -313,9 +313,13 @@ def read_preserving_pdb(path: str | Path) -> Chem.Mol:
         # MDAnalysis/GROMOS extended names occupy the otherwise blank column 21.
         # RDKit and gemmi both expose only the standard three-character field.
         extended_name = line[17:21].strip()
-        source_names[serial] = (
-            extended_name if extended_name in _ALIASES else line[17:20].strip()
-        )
+        if len(extended_name) == 4 and extended_name not in STANDARD_RESNAME_MAP:
+            raise ValueError(
+                f"Atom serial {serial}: unsupported extended PDB residue name "
+                f"{extended_name!r}; supply a recognized residue alias or pass "
+                "a molecule with intact residue metadata."
+            )
+        source_names[serial] = extended_name
     for atom in molecule.GetAtoms():
         info = atom.GetPDBResidueInfo()
         if info.GetSerialNumber() not in source_names:

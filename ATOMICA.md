@@ -30,6 +30,12 @@ molecule, residue, interaction, and pickling tests remain in place.
 
 ### Source-preserving histidine standardization (unreleased)
 
+The template paths now apply shared protein atom aliases (including terminal
+oxygen names) and reject duplicate canonical names. Library-owned PDB reading
+retains recognized four-letter residue aliases in both modes; unsupported extended
+names, ambiguous serial mappings and conflicting atom-name mappings raise errors.
+This fixes lost C–O connectivity and non-histidine template selection at parsing.
+
 `MoleculeStandardizer(preserve_histidine=True)` resolves histidine states from
 source evidence **before** selecting per-residue HID/HIE/HIS templates. It
 preserves a mixture of HID, HIE and HIP even when a writer calls them all HIS.

@@ -372,13 +372,11 @@ class MoleculeStandardizer:
         if isinstance(input_topology, str | Path) and str(input_topology).endswith(
             ".pdb"
         ):
-            input_protein_top = (
-                read_preserving_pdb(input_topology)
-                if self.preserve_histidine
-                else Chem.MolFromPDBFile(str(input_topology), removeHs=False)
-            )
+            input_protein_top = read_preserving_pdb(input_topology)
             if self.preserve_histidine:
                 check_histidine_hydrogens(input_protein_top)
+            else:
+                Chem.SanitizeMol(input_protein_top)
             return Molecule.from_rdkit(input_protein_top)
 
         raise TypeError(
