@@ -36,6 +36,11 @@ retains recognized four-letter residue aliases in both modes; unsupported extend
 names, ambiguous serial mappings and conflicting atom-name mappings raise errors.
 This fixes lost C–O connectivity and non-histidine template selection at parsing.
 
+Histidine preservation now derives residue views from the finalized connected
+graph. This keeps hybridization and H inventories consistent when the analysis
+molecule is rebuilt after H removal. It does not extend the histidine-only
+option's source-state guarantee to other residues.
+
 `MoleculeStandardizer(preserve_histidine=True)` resolves histidine states from
 source evidence **before** selecting per-residue HID/HIE/HIS templates. It
 preserves a mixture of HID, HIE and HIP even when a writer calls them all HIS.

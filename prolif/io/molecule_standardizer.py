@@ -343,7 +343,6 @@ class MoleculeStandardizer:
             return Molecule(
                 connected,
                 use_segid=protein_mol[0]._use_segid,
-                residues=new_residues,
             )
 
         return protein_mol
